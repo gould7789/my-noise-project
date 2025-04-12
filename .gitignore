@@ -1,0 +1,40 @@
+# ✅ 파이썬 캐시/컴파일 파일 무시
+__pycache__/
+*.pyc
+
+# ✅ 오디오/이미지 등 무거운 데이터 무시
+*.wav
+*.mp3
+*.m4a
+*.npy
+*.png
+*.jpg
+*.jpeg
+
+# ✅ Jupyter 자동 저장 파일 무시
+.ipynb_checkpoints/
+
+# ✅ 로컬 설정 파일 무시
+.vscode/
+*.code-workspace
+
+# ✅ 로그 및 기타 임시 파일 무시
+*.log
+.DS_Store
+
+# ✅ (선택) 로컬 가상환경 무시
+venv/
+.venv/
+
+# ✅ (선택) 환경변수 파일 무시
+.env
+
+# ✅ (선택) SQLite DB 무시
+*.db
+*.sqlite
+
+# ✅ (선택) 결과물/압축파일 무시
+*.zip
+*.tar
+output/
+__results__/
