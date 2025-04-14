@@ -15,7 +15,7 @@ n_mfcc = 13
 max_len = 130
 segment_duration = 5.0
 segment_samples = int(sr * segment_duration)
-label_map = {'quiet': 0, 'loud': 1, 'ambiguous': 2}
+label_map = {'quiet': 0, 'loud': 1} # 나중에 'ambiguous': 2 추가
 
 # ================================
 # MFCC + ZCR 특징 추출 함수
@@ -69,6 +69,9 @@ def evaluate(model_path='output/cnn_lstm_model.h5', folder_path='data'):
 
     for category in os.listdir(folder_path):
         label = label_map.get(category)
+        if label is None:           # 여기서부터터
+            print(f"[SKIP] '{category}' folder is not labeled in label_map → skipped")
+            continue                # 여기까지 나중에 ambiguous 추가하면 삭제
         category_path = os.path.join(folder_path, category)
         if not os.path.isdir(category_path):
             continue
@@ -92,8 +95,8 @@ def evaluate(model_path='output/cnn_lstm_model.h5', folder_path='data'):
     print(f"\n✅ 전체 정확도: {acc * 100:.2f}%")
 
     # 혼동 행렬
-    labels = ["quiet", "loud", "ambiguous"]
-    cm = confusion_matrix(y_true, y_pred, labels=[0,1,2])
+    labels = ["quiet", "loud"] # 나중에 "ambiguous" 추가
+    cm = confusion_matrix(y_true, y_pred, labels=[0,1]) # 나중에 2 추가
 
     base_dir = os.path.dirname(os.path.abspath(__file__))
     output_path = os.path.join(base_dir, "output")

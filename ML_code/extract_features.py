@@ -66,10 +66,10 @@ if __name__ == "__main__":
     X.extend(X_L)
     y.extend(y_L)
 
-    # 애매한 소리 처리 (label = 2)
-    X_a, y_a = process_directory('../data/ambiguous', label=2)
-    X.extend(X_a)
-    y.extend(y_a)
+    # # 애매한 소리 처리 (label = 2)
+    # X_a, y_a = process_directory('../data/ambiguous', label=2)
+    # X.extend(X_a)
+    # y.extend(y_a)
 
     # 최종 배열로 변환
     X = np.array(X)
