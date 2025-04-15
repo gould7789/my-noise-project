@@ -37,7 +37,7 @@ def split_and_save(y, sr, save_dir, base_name, start_index):
     return start_index
 
 # 🚀 전체 처리
-for category in ["loud", "quiet"]:  # 필요 시 "ambiguous" 추가
+for category in ["loud", "quiet", "ambiguous"]:  # 필요 시 "ambiguous" 추가
     input_folder = os.path.join(input_root, category)
     output_folder = os.path.join(output_root, category)
 

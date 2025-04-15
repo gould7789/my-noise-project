@@ -76,9 +76,9 @@ if __name__ == "__main__":
     y.extend(y_l)
 
     # # 애매한 소리 (원할 경우 주석 해제)
-    # X_a, y_a = process_directory("data/ambiguous", label=2)
-    # X.extend(X_a)
-    # y.extend(y_a)
+    X_a, y_a = process_directory("data/ambiguous", label=2)
+    X.extend(X_a)
+    y.extend(y_a)
 
     X = np.array(X)
     y = np.array(y)

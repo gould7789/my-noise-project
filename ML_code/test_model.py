@@ -15,7 +15,7 @@ n_mfcc = 13
 max_len = 130
 segment_duration = 5.0
 segment_samples = int(sr * segment_duration)
-label_map = {'quiet': 0, 'loud': 1} # 나중에 'ambiguous': 2 추가
+label_map = {'quiet': 0, 'loud': 1, 'ambiguous': 2} # 나중에 'ambiguous': 2 추가
 
 # ================================
 # MFCC + ZCR 특징 추출 함수
@@ -43,28 +43,28 @@ def predict_file(model, filepath):
         end = start + segment_samples
         segment = signal[start:end]
 
-        # 짧은 구간은 패딩
+        # 패딩
         if len(segment) < segment_samples:
             padding = segment_samples - len(segment)
             segment = np.pad(segment, (0, padding), mode='constant')
 
         feature = extract_features(segment, sr)
-        feature = np.expand_dims(feature, axis=0)  # 배치 차원 추가
+        feature = np.expand_dims(feature, axis=0)  # (1, 130, 14, 1)
 
-        prob = model.predict(feature, verbose=0)[0][0]
-        pred = int(prob >= 0.5)  # sigmoid 기준 이진 분류
-        preds.append((pred, prob))
+        prob = model.predict(feature, verbose=0)[0]  # shape: (3,) softmax 결과
+        preds.append(prob)
 
-    # 세그먼트들의 평균 확률로 최종 예측
-    avg_prob = np.mean([p[1] for p in preds])
-    final_pred = int(avg_prob >= 0.5)
+    # 각 세그먼트 softmax 확률 평균 → 최종 예측
+    avg_prob = np.mean(preds, axis=0)  # shape: (3,)
+    final_pred = int(np.argmax(avg_prob))
     return final_pred, avg_prob
+
 
 # ================================
 # 전체 평가 함수
 # ================================
-def evaluate(model_path='output/cnn_lstm_model.h5', folder_path='data'):
-    model = tf.keras.models.load_model(model_path)
+def evaluate(model_path='output/best_model.h5', folder_path='model_test'):
+    model = tf.keras.models.load_model("output/best_model.h5")
     y_true, y_pred = [], []
 
     for category in os.listdir(folder_path):
@@ -81,11 +81,11 @@ def evaluate(model_path='output/cnn_lstm_model.h5', folder_path='data'):
                 continue
 
             filepath = os.path.join(category_path, fname)
-            pred_label, prob = predict_file(model, filepath)
+            final_pred, avg_prob = predict_file(model, filepath)
 
-            print(f"{fname} → 예측={pred_label} (확률={prob:.2f}), 실제={label}")
+            print(f"{fname} → 예측={final_pred} (확률={avg_prob}), 실제={label}")
             y_true.append(label)
-            y_pred.append(pred_label)
+            y_pred.append(final_pred)
 
     if not y_true:
         print("❌ 예측된 데이터가 없습니다. wav 파일이 충분한지 확인하세요.")
@@ -94,20 +94,19 @@ def evaluate(model_path='output/cnn_lstm_model.h5', folder_path='data'):
     acc = accuracy_score(y_true, y_pred)
     print(f"\n✅ 전체 정확도: {acc * 100:.2f}%")
 
-    # 혼동 행렬
-    labels = ["quiet", "loud"] # 나중에 "ambiguous" 추가
-    cm = confusion_matrix(y_true, y_pred, labels=[0,1]) # 나중에 2 추가
-
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    output_path = os.path.join(base_dir, "output")
-    os.makedirs(output_path, exist_ok=True)
+    # 혼동 행렬 시각화 (영문 스타일로)
+    cm = confusion_matrix(y_true, y_pred, labels=[0, 1, 2])
+    labels = ["quiet", "loud", "ambiguous"]
 
     plt.figure(figsize=(6, 5))
     sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=labels, yticklabels=labels)
-    plt.xlabel("예측 라벨")
-    plt.ylabel("실제 라벨")
-    plt.title("혼동 행렬")
-    plt.savefig(os.path.join(output_path, "confusion_matrix.png"))
+    plt.xlabel("Predicted label")
+    plt.ylabel("True label")
+    plt.title("Confusion Matrix (True vs Predicted)")
+    plt.tight_layout()
+
+    os.makedirs("output", exist_ok=True)
+    plt.savefig("output/confusion_matrix.png")
     plt.show()
 
 # ================================
